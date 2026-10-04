@@ -1,0 +1,6 @@
+Retrieval-Augmented Generation (RAG) combines a search step with a language model. 
+Documents are split into chunks and embedded into vectors stored in a database such
+as Chroma or FAISS. When a user asks a question, the system embeds the question, 
+retrieves the most similar chunks, and passes them to the LLM as context. This lets
+the model answer from your own documents and reduces made-up answers. 
+Chunk size and the number of retrieved results strongly affect answer quality.

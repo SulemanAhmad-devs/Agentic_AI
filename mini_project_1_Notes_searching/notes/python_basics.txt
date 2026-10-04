@@ -1,0 +1,7 @@
+Python is a high-level programming language known for readable syntax. 
+Variables are created by assignment, with no type declaration needed. 
+Lists store ordered collections, dictionaries store key-value pairs, 
+and sets store unique items. Functions are defined with the def keyword,
+and indentation defines code blocks. Common mistakes for beginners include
+forgetting the colon after if or for statements, and mixing up = (assignment)
+with == (comparison).
