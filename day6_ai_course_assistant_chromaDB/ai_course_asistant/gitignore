@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+db.sqlite3
+
+chroma_db/
+
+.env
+.venv/
+venv/
+
+.vscode/

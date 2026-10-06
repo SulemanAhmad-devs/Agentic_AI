@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>AI Course Assistant</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 60px auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .header h1 {
+            margin-bottom: 10px;
+            color: #1e3a8a;
+        }
+
+        .header p {
+            color: #6b7280;
+        }
+
+        .search-box {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            resize: none;
+            font-size: 16px;
+        }
+
+        button {
+            margin-top: 15px;
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 10px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .result {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            border-left: 5px solid #2563eb;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+        }
+
+        .category {
+            display: inline-block;
+            background: #e0ecff;
+            color: #1e40af;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .score {
+            color: #6b7280;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+
+        <h1>AI Course Assistant</h1>
+
+        <p>
+            Ask a question about Python, AI, ML, Django, RAG or Agents.
+        </p>
+
+    </div>
+
+
+    <div class="search-box">
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+            <textarea
+                name="question"
+                placeholder="Example: What is machine learning?"
+                required>{{ question }}</textarea>
+
+            <button type="submit">
+                Search Course Knowledge
+            </button>
+
+        </form>
+
+    </div>
+
+
+    {% if results %}
+
+        <div class="results">
+
+            <h2>Relevant Information</h2>
+
+            {% for result in results %}
+
+                <div class="result">
+
+                    <div class="category">
+                        {{ result.category }}
+                    </div>
+
+                    <p>
+                        {{ result.document }}
+                    </p>
+
+                    <div class="score">
+                        Distance: {{ result.distance }}
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+
+</div>
+
+</body>
+
+</html>
