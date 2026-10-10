@@ -1,0 +1,4 @@
+Django>=5.2,<6.0
+pypdf>=5.0
+chromadb>=1.0
+sentence-transformers>=3.0

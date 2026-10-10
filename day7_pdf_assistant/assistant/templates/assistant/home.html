@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI PDF Assistant</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f5f9;
+            color: #202938;
+            line-height: 1.6;
+        }
+
+        header {
+            background: #172554;
+            color: white;
+            padding: 28px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0 0 8px;
+        }
+
+        header p {
+            margin: 0;
+            color: #dbeafe;
+        }
+
+        main {
+            width: min(900px, 92%);
+            margin: 30px auto;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            margin-bottom: 22px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #172554;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        input[type="file"],
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            margin-bottom: 15px;
+            background: white;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 7px;
+            background: #2563eb;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .message {
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            border-radius: 7px;
+            background: #e0f2fe;
+            overflow-wrap: anywhere;
+        }
+
+        .success {
+            background: #dcfce7;
+        }
+
+        .error {
+            background: #fee2e2;
+        }
+
+        .document-info {
+            background: #eff6ff;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-wrap: anywhere;
+        }
+
+        .result {
+            border: 1px solid #e2e8f0;
+            border-radius: 9px;
+            padding: 18px;
+            margin-top: 15px;
+            background: #fff;
+        }
+
+        .result-meta {
+            color: #475569;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .result-text {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .score {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 5px;
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .hint {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        footer {
+            text-align: center;
+            color: #64748b;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>AI PDF Assistant</h1>
+    <p>Day 7: PDF Chunking, Embeddings and ChromaDB</p>
+</header>
+
+<main>
+
+    {% if messages %}
+        <section aria-label="Notifications">
+            {% for message in messages %}
+                <div class="message
+                    {% if message.tags == 'success' %}success{% endif %}
+                    {% if message.tags == 'error' %}error{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </section>
+    {% endif %}
+
+    <!-- PDF Upload -->
+    <section class="card">
+        <h2>1. Upload Your PDF</h2>
+
+        <p>
+            Upload a text-based PDF to extract its text,
+            split it into overlapping chunks, and index it
+            for semantic search.
+        </p>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <input type="hidden" name="action" value="upload">
+
+            <label for="pdf_file">Choose a PDF file</label>
+
+            <input
+                type="file"
+                id="pdf_file"
+                name="pdf_file"
+                accept=".pdf,application/pdf"
+                required
+            >
+
+            <p class="hint">Maximum upload size: 10 MB.</p>
+
+            <button type="submit">Upload and Process PDF</button>
+        </form>
+    </section>
+
+    <!-- Active Document -->
+    {% if filename %}
+        <section class="card">
+            <h2>2. Document Information</h2>
+
+            <div class="document-info">
+                <p>
+                    <strong>File:</strong>
+                    {{ filename }}
+                </p>
+
+                <p>
+                    <strong>Pages with extracted text:</strong>
+                    {{ page_count }}
+                </p>
+
+                <p>
+                    <strong>Chunks indexed:</strong>
+                    {{ chunk_count }}
+                </p>
+
+                <p>
+                    <strong>Chunk size:</strong>
+                    500 characters
+                </p>
+
+                <p>
+                    <strong>Chunk overlap:</strong>
+                    100 characters
+                </p>
+            </div>
+        </section>
+
+        <!-- Semantic Search -->
+        <section class="card">
+            <h2>3. Search Your PDF</h2>
+
+            <p>
+                Enter a question or a phrase to retrieve
+                the most semantically relevant chunks.
+            </p>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <input type="hidden" name="action" value="search">
+
+                <label for="query">Your search query</label>
+
+                <input
+                    type="text"
+                    id="query"
+                    name="query"
+                    maxlength="1000"
+                    value="{{ last_query }}"
+                    placeholder="Example: What does this document explain about AI?"
+                    required
+                >
+
+                <button type="submit">Search Document</button>
+            </form>
+        </section>
+
+        <!-- Search Results -->
+        {% if results %}
+            <section class="card">
+                <h2>4. Retrieved Chunks</h2>
+
+                <p class="hint">
+                    Results are ranked by semantic similarity.
+                    Scores are approximate cosine similarities,
+                    not measures of factual correctness.
+                </p>
+
+                {% for result in results %}
+                    <article class="result">
+                        <h3>Result {{ forloop.counter }}</h3>
+
+                        <div class="result-meta">
+                            <strong>Source:</strong>
+                            {{ result.source }}
+
+                            &nbsp;|&nbsp;
+
+                            <strong>Page:</strong>
+                            {{ result.page }}
+
+                            &nbsp;|&nbsp;
+
+                            <strong>Chunk:</strong>
+                            {{ result.chunk_number }}
+                        </div>
+
+                        <p>
+                            <strong>Similarity:</strong>
+                            <span class="score">
+                                {{ result.score|floatformat:3 }}
+                            </span>
+                        </p>
+
+                        <div class="result-text">{{ result.text }}</div>
+                    </article>
+                {% endfor %}
+            </section>
+        {% endif %}
+
+    {% else %}
+        <section class="card">
+            <h2>2. Search Your PDF</h2>
+            <p>
+                Your document information and search tools will
+                appear here after you successfully upload a PDF.
+            </p>
+        </section>
+    {% endif %}
+
+</main>
+
+<footer>
+    Built with Django, pypdf, Sentence Transformers and ChromaDB.
+</footer>
+
+</body>
+</html>
